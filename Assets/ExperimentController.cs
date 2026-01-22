@@ -37,10 +37,16 @@ public class ExperimentController : MonoBehaviour
         {
             if (!FittsVRController.instance.conditionComplete)
             {
-                rightRayInteractor.TryGetCurveEndPoint(out Vector3 endPoint, true, false);
-                selectionPoint.transform.position = endPoint;
 
-                if (rightActivateAction.WasPerformedThisFrame()) FittsVRController.instance.FittsSelection();
+
+                if (rightActivateAction.WasPerformedThisFrame())
+                {
+                    FittsVRDetailOutputController.instance.SetAddition("New Field", "Val " + Random.Range(0, 100));
+
+                    rightRayInteractor.TryGetCurveEndPoint(out Vector3 endPoint, true, false);
+                    selectionPoint.transform.position = endPoint;
+                    FittsVRController.instance.FittsSelection();
+                }
             }
             else
             {

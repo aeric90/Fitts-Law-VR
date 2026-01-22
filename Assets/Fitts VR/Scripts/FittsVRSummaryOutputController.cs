@@ -16,6 +16,7 @@ public class FittsSelection
     public float selectionX;
     public float selectionY;
     public float selectionZ;
+    public int hit;
     public float targetX;
     public float targetY;
     public float targetZ;
@@ -34,6 +35,7 @@ public class FittsVRSummaryOutputController : MonoBehaviour
     private List<FittsSelection> selections = new List<FittsSelection>();
     private List<float> tList = new List<float>();
     private List<float> dXlist = new List<float>();
+    private int hitSum = 0;
 
     private void Awake()
     {
@@ -55,14 +57,14 @@ public class FittsVRSummaryOutputController : MonoBehaviour
         headerLine += "Width,";
         headerLine += "Fitts ID,";
         headerLine += "Mean Time,";
+        headerLine += "Throughput,";
         headerLine += "Mean Delta X,";
         headerLine += "Std. Dev. X,";
         headerLine += "Width Effective,";
         headerLine += "Fitts ID Effective,";
-        headerLine += "Throughput";
-
-        // count of hits
-        // effective amplitude
+        headerLine += "Throughput (We),";
+        headerLine += "Hits,";
+        headerLine += "Total Targets";
 
         summaryOutput.WriteLine(headerLine);
     }
@@ -88,6 +90,7 @@ public class FittsVRSummaryOutputController : MonoBehaviour
         newSelection.deltaX = (float)Math.Round(Math.Abs(currentTargetVector.x - selectionVector.x), 5);
         newSelection.deltaY = (float)Math.Round(Math.Abs(currentTargetVector.y - selectionVector.y), 5);
         newSelection.deltaZ = (float)Math.Round(Math.Abs(currentTargetVector.z - selectionVector.z), 5);
+        newSelection.hit = FittsVRController.instance.targetIn ? 1 : 0;
 
         // hit for aggregates
 
@@ -109,10 +112,14 @@ public class FittsVRSummaryOutputController : MonoBehaviour
         {
             tList.Add(selection.time);
             dXlist.Add(selection.deltaX);
+            hitSum += selection.hit;
         }
 
         float mT = MeanFromList(tList);
         outputLine += mT + ",";
+
+        float TP = FittsVRController.instance.currentCondition.fittsID / mT;
+        outputLine += TP + ",";
 
         float mDx = MeanFromList(dXlist);
         outputLine += mDx + ",";
@@ -126,13 +133,17 @@ public class FittsVRSummaryOutputController : MonoBehaviour
         float IDe = (float)Math.Log((FittsVRController.instance.currentCondition.amplitude / We) + 1, 2);
         outputLine += IDe + ",";
 
-        float TP = IDe / mT;
-        outputLine += TP;
+        float TPe = IDe / mT;
+        outputLine += TPe + ",";
+
+        outputLine += hitSum + ",";
+        outputLine += FittsVRController.instance.numberOfTargets;
 
         summaryOutput.WriteLine(outputLine);
 
         tList.Clear();
         dXlist.Clear();
+        hitSum = 0;
 
         selections.Clear();
     }
